@@ -1,0 +1,16 @@
+{
+  "author": "vision9074",
+  "gitHubUrl": "https://github.com/vision9074",
+  "packages": [
+    {
+      "id": "200683c6-4df8-4f80-9b4c-74542f560930",
+      "name": "Pi-hole Integration",
+      "category": "Integrations",
+      "location": "https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/packageManifest.json",
+      "description": "Monitor and control one or more Pi-hole v6 servers from Hubitat. Exposes query, client, blocklist and host-health statistics, turns ad blocking on and off with an optional auto-expiring timer, and can drive every Pi-hole at once from a single group device.",
+      "tags": [
+        "Monitoring"
+      ]
+    }
+  ]
+}
