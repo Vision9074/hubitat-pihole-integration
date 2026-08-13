@@ -1,5 +1,5 @@
 {
-  "packageName": "Pi-hole Integration",
+  "packageName": "Pihole Integration",
   "author": "vision9074",
   "version": "1.0.0",
   "minimumHEVersion": "2.3.0",
@@ -9,7 +9,7 @@
   "apps": [
     {
       "id": "e19a15ea-60e8-4c07-81be-8b0bc21eb64b",
-      "name": "Pi-hole Integration",
+      "name": "Pihole Integration",
       "namespace": "vision9074",
       "location": "https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/PiholeIntegration.groovy",
       "required": true,
@@ -20,19 +20,19 @@
   "drivers": [
     {
       "id": "4fa5eaaf-900c-48b6-9cbf-28760fa6bf74",
-      "name": "Pi-hole Server",
+      "name": "Pihole Server",
       "namespace": "vision9074",
       "location": "https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/PiholeServer.groovy",
       "required": true
     },
     {
       "id": "d3a2b724-c42e-4759-968c-40c34ff9fa19",
-      "name": "Pi-hole Group",
+      "name": "Pihole Group",
       "namespace": "vision9074",
       "location": "https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/PiholeGroup.groovy",
       "required": false,
-      "description": "Optional. One device that summarises every Pi-hole and turns blocking on or off across all of them at once."
+      "description": "Optional. One device that summarises every Pihole and turns blocking on or off across all of them at once."
     }
   ],
-  "releaseNotes": "1.0.0 - Initial release. Parent app manages any number of Pi-hole v6 servers, verifies each connection before creating a device, and raises offline / block-rate / update notifications. The Pi-hole Server driver polls statistics and controls blocking; the optional Pi-hole Group driver aggregates the fleet."
+  "releaseNotes": "1.0.0 - Initial release. Parent app manages any number of Pihole v6 servers, verifies each connection before creating a device, and raises offline / block-rate / update notifications. The Pihole Server driver polls statistics and controls blocking; the optional Pihole Group driver aggregates the fleet."
 }

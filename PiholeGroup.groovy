@@ -1,14 +1,14 @@
 /**
- *  Pi-hole Group
+ *  Pihole Group
  *  =============
- *  Child driver for the "Pi-hole Integration" app. One device that summarises
- *  every Pi-hole on the hub and controls all of them at once.
+ *  Child driver for the "Pihole Integration" app. One device that summarises
+ *  every Pihole on the hub and controls all of them at once.
  *
  *  It holds no credentials and makes no network calls of its own: the app
  *  aggregates the child devices and pushes the result down here, and commands
  *  are fanned back out through the app.
  *
- *  The reason this exists: the usual reason to run a second Pi-hole is
+ *  The reason this exists: the usual reason to run a second Pihole is
  *  redundancy, and every client is configured with both. Disabling blocking on
  *  only one of a redundant pair therefore does nothing useful - queries just
  *  get answered by the other one. Anything that turns blocking off should turn
@@ -17,16 +17,16 @@
  *  ---------------------------------------------------------------------------
  *  SWITCH SEMANTICS
  *  ---------------------------------------------------------------------------
- *  on()  = enable blocking on every Pi-hole
- *  off() = disable blocking on every Pi-hole, for the default off duration
+ *  on()  = enable blocking on every Pihole
+ *  off() = disable blocking on every Pihole, for the default off duration
  *
  *  The reported switch state depends on the app's "reports on only when every
- *  Pi-hole is blocking" option. With it set (the default) the group is "on"
+ *  Pihole is blocking" option. With it set (the default) the group is "on"
  *  only when nothing is letting ads through, which is the honest reading for a
- *  redundant pair. With it clear, one Pi-hole still blocking is enough.
+ *  redundant pair. With it clear, one Pihole still blocking is enough.
  *
  *  Aggregation rules: query counts are summed across the fleet, because every
- *  Pi-hole answers a different share of the traffic. Blocklist size and active
+ *  Pihole answers a different share of the traffic. Blocklist size and active
  *  client counts take the largest value instead, because a redundant pair runs
  *  the same lists and serves the same clients, so summing would double-count.
  *
@@ -34,7 +34,7 @@
  */
 
 metadata {
-    definition(name: "Pi-hole Group", namespace: "vision9074", author: "vision9074",
+    definition(name: "Pihole Group", namespace: "vision9074", author: "vision9074",
                importUrl: "https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/PiholeGroup.groovy") {
         capability "Actuator"
         capability "Sensor"
@@ -114,7 +114,7 @@ void off() {
 void enableBlocking() {
     logDebug "enableBlocking() across the fleet"
     parent?.groupEnableBlocking()
-    // The app schedules a fleet refresh that will correct this if a Pi-hole
+    // The app schedules a fleet refresh that will correct this if a Pihole
     // did not take the command.
     optimistic("enabled")
 }
@@ -135,7 +135,7 @@ private void optimistic(String blocking) {
 // Data from the parent app
 // =============================================================================
 /**
- * Called by the app whenever any Pi-hole reports in. Every key is optional so
+ * Called by the app whenever any Pihole reports in. Every key is optional so
  * the app can grow the summary without breaking an older copy of this driver.
  */
 void updateGroupState(Map summary) {

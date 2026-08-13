@@ -1,10 +1,10 @@
 /**
- *  Pi-hole Server
+ *  Pihole Server
  *  ==============
- *  Driver for a single Pi-hole, exposing its statistics as attributes and its
+ *  Driver for a single Pihole, exposing its statistics as attributes and its
  *  blocking state as a switch.
  *
- *  Normally created and configured by the "Pi-hole Integration" app, but it is
+ *  Normally created and configured by the "Pihole Integration" app, but it is
  *  self-contained: fill in the hostname and password below and it works on its
  *  own. The app adds fleet management, notifications and the group device.
  *
@@ -15,20 +15,20 @@
  *  off() = blocking disabled (ads get through)
  *
  *  off() uses the "Default off duration" preference. Left at 0 it disables
- *  blocking until something turns it back on, which is what the Pi-hole web
+ *  blocking until something turns it back on, which is what the Pihole web
  *  interface calls "indefinitely". Set it to, say, 5 and every off() becomes a
- *  five minute reprieve that Pi-hole itself reverses - safer for a rule that
+ *  five minute reprieve that Pihole itself reverses - safer for a rule that
  *  might not get to run its "on" half.
  *
  *  ---------------------------------------------------------------------------
  *  API NOTES
  *  ---------------------------------------------------------------------------
- *  Pi-hole v6 REST API (Pi-hole 6.0, February 2025, and later). Pi-hole v5's
+ *  Pihole v6 REST API (Pihole 6.0, February 2025, and later). Pihole v5's
  *  /admin/api.php is a different, incompatible interface and is not supported.
  *
  *  Auth:  POST /api/auth with {"password": "..."} returns a session id. It is
  *         sent back as the X-FTL-SID header. Sessions expire after `validity`
- *         seconds of inactivity, are bound to the calling IP, and Pi-hole only
+ *         seconds of inactivity, are bound to the calling IP, and Pihole only
  *         permits a limited number at once - so this driver holds exactly one,
  *         renews it before it lapses, and hands it back on DELETE /api/auth
  *         whenever the connection details change.
@@ -40,7 +40,7 @@
  *  The slow cycle is what does not:
  *         GET /api/info/system     uptime, load, memory
  *         GET /api/info/version    core/FTL/web versions and updates
- *         GET /api/info/messages/count   Pi-hole's own diagnostics count
+ *         GET /api/info/messages/count   Pihole's own diagnostics count
  *
  *  /api/padd is the aggregate endpoint PADD uses. It is not present on every
  *  v6 build, so a 404 there permanently falls back to /api/dns/blocking plus
@@ -48,10 +48,10 @@
  *
  *  Scope: this driver reads statistics and toggles blocking, and deliberately
  *  stops there. Gravity updates, DNS restarts and log flushes belong to the
- *  Pi-hole's own interface - they are slow, disruptive, gated behind
+ *  Pihole's own interface - they are slow, disruptive, gated behind
  *  `webserver.api.allow_destructive`, and give no useful feedback through an
  *  attribute, so wrapping them in a Hubitat command only adds ways to break a
- *  working Pi-hole from a dashboard tile.
+ *  working Pihole from a dashboard tile.
  *
  *  License: MIT
  */
@@ -60,18 +60,18 @@ import groovy.json.JsonOutput
 import groovy.transform.Field
 
 metadata {
-    definition(name: "Pi-hole Server", namespace: "vision9074", author: "vision9074",
+    definition(name: "Pihole Server", namespace: "vision9074", author: "vision9074",
                importUrl: "https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/PiholeServer.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Refresh"
         capability "Initialize"
         capability "Switch"                  // on = blocking enabled
-        capability "TemperatureMeasurement"  // the Pi-hole host's CPU temperature
+        capability "TemperatureMeasurement"  // the Pihole host's CPU temperature
 
         // --- Blocking
         attribute "blocking", "enum", ["enabled", "disabled", "failed", "unknown"]
-        attribute "blockingTimer", "number"        // seconds until Pi-hole re-enables itself
+        attribute "blockingTimer", "number"        // seconds until Pihole re-enables itself
         attribute "blockingResumesAt", "string"
 
         // --- Query statistics
@@ -109,7 +109,7 @@ metadata {
         attribute "versionFtl", "string"
         attribute "versionWeb", "string"
         attribute "updateAvailable", "enum", ["yes", "no"]
-        attribute "diagnosticMessages", "number"   // Pi-hole's own warnings
+        attribute "diagnosticMessages", "number"   // Pihole's own warnings
         attribute "privacyLevel", "number"
         attribute "dhcpActive", "enum", ["on", "off"]
 
@@ -175,7 +175,7 @@ metadata {
     "360": "Every 6 hours"
 ]
 
-/** Renew the session this many seconds before Pi-hole would expire it. */
+/** Renew the session this many seconds before Pihole would expire it. */
 @Field static final int SESSION_SKEW_SECONDS = 30
 /** Tolerate this many consecutive failures before declaring the host offline. */
 @Field static final int OFFLINE_AFTER_FAILURES = 2
@@ -288,7 +288,7 @@ void poll() {
     }
 }
 
-/** The slow cycle: uptime, versions and Pi-hole's own diagnostics. */
+/** The slow cycle: uptime, versions and Pihole's own diagnostics. */
 void pollDetails() {
     if (!ensureSession()) return
     apiGet("/info/system", "systemCallback", [op: "system"])
@@ -328,7 +328,7 @@ void paddCallback(resp, Map data) {
     // losing the blocking state and CPU temperature on every poll.
     if (resp.hasError() && resp.status == 404 && !state.noPadd) {
         state.noPadd = true
-        logWarn "This Pi-hole has no /api/padd endpoint; using /api/dns/blocking and " +
+        logWarn "This Pihole has no /api/padd endpoint; using /api/dns/blocking and " +
                 "/api/info/sensors instead."
         runIn(3, "poll", [overwrite: true])
         return
@@ -452,7 +452,7 @@ private void setBlocking(boolean enabled, Integer minutes) {
     // The API rejects a timer of 0; absent means "no timer".
     if (minutes) body.timer = minutes * 60
 
-    // Reflect the request straight away. Pi-hole applies it immediately, but
+    // Reflect the request straight away. Pihole applies it immediately, but
     // the confirming response is a round trip away - which is also why there is
     // no point chasing the timer here.
     applyBlocking(enabled ? "enabled" : "disabled", minutes ? (minutes * 60) : null, false)
@@ -497,7 +497,7 @@ private void applySensors(Map sensors) {
     if (!sensors) return
     BigDecimal temp = decimalOf(sensors.cpu_temp)
     if (temp == null) return
-    // Pi-hole reports in whichever unit its own settings use; Hubitat wants the
+    // Pihole reports in whichever unit its own settings use; Hubitat wants the
     // hub's scale.
     String unit = (sensors.unit ?: "C").toString().toUpperCase()
     BigDecimal celsius
@@ -543,7 +543,7 @@ private String apiBase() {
 }
 
 /**
- * Guarantees a usable session, renewing it just before Pi-hole would expire it.
+ * Guarantees a usable session, renewing it just before Pihole would expire it.
  * Synchronous by design: this is one short request on the local network and
  * every caller needs the answer before it can build its own request.
  */
@@ -578,18 +578,18 @@ private boolean login() {
         httpPost(params) { resp ->
             Map session = (resp.data as Map)?.session as Map
             if (session?.valid) {
-                // A Pi-hole with no API password returns a valid session and no
+                // A Pihole with no API password returns a valid session and no
                 // sid; "" then means "authenticated, send no header".
                 state.sid = session.sid ?: ""
                 state.sidBase = base
                 Long validity = longOf(session.validity) ?: 300L
                 // Negative validity means the session does not expire.
                 state.sidExpiresAt = now() + ((validity > 0 ? validity : 3600L) * 1000L)
-                logDebug "Authenticated${session.sid ? '' : ' (this Pi-hole has no API password)'}"
+                logDebug "Authenticated${session.sid ? '' : ' (this Pihole has no API password)'}"
                 clearError()
                 ok = true
             } else {
-                noteError("Pi-hole refused the password")
+                noteError("Pihole refused the password")
                 markOffline()
             }
         }
@@ -599,10 +599,10 @@ private boolean login() {
                 noteError("Password rejected. If two-factor authentication is enabled, use an application password.")
                 break
             case 404:
-                noteError("No /api/auth endpoint. This integration needs Pi-hole v6 or later.")
+                noteError("No /api/auth endpoint. This integration needs Pihole v6 or later.")
                 break
             case 429:
-                noteError("Pi-hole is rate limiting login attempts")
+                noteError("Pihole is rate limiting login attempts")
                 break
             default:
                 noteError("Login failed: HTTP ${e.statusCode}")
@@ -616,7 +616,7 @@ private boolean login() {
 }
 
 /**
- * Hands the session back so it stops occupying one of Pi-hole's limited
+ * Hands the session back so it stops occupying one of Pihole's limited
  * concurrent session slots. Uses the host the session was issued by, which is
  * not necessarily the one in the settings now.
  */
@@ -698,16 +698,16 @@ private Map readResponse(resp, Map data) {
         if (status == 403) {
             // The session authenticated but is not permitted to do this. With an
             // application password that usually means 'webserver.api.app_sudo'.
-            noteError("Pi-hole refused ${op} (403). The session is authenticated but not " +
+            noteError("Pihole refused ${op} (403). The session is authenticated but not " +
                       "permitted; check the API permissions for this password.")
             return null
         }
         if (status == 429) {
-            noteError("Pi-hole is rate limiting requests (429); reduce the poll frequency.")
+            noteError("Pihole is rate limiting requests (429); reduce the poll frequency.")
             return null
         }
         // status is null when nothing answered at all, which is the common case
-        // for a powered-down Pi-hole and deserves plainer wording than "HTTP null".
+        // for a powered-down Pihole and deserves plainer wording than "HTTP null".
         noteError(status ? "${op} failed: HTTP ${status} ${resp.getErrorMessage() ?: ''}"
                          : "${op} failed: no response from ${apiBase()}")
         markOffline()
@@ -717,7 +717,7 @@ private Map readResponse(resp, Map data) {
     try {
         return resp.getJson() as Map
     } catch (Exception e) {
-        noteError("${op}: Pi-hole did not return JSON (${e.message})")
+        noteError("${op}: Pihole did not return JSON (${e.message})")
         return null
     }
 }

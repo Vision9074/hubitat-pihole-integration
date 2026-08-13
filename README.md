@@ -1,42 +1,42 @@
-# Pi-hole Integration for Hubitat
+# Pihole Integration for Hubitat
 
-Bring your [Pi-hole](https://pi-hole.net) servers into Hubitat: blocking
+Bring your [Pihole](https://pi-hole.net) servers into Hubitat: blocking
 statistics, host health, update alerts, and ad blocking as a switch you can put
-on a dashboard or drive from a rule. Handles any number of Pi-holes, and can
+on a dashboard or drive from a rule. Handles any number of Piholes, and can
 treat a redundant pair as one.
 
-> **Unofficial.** This is not made or supported by the Pi-hole project. It uses
-> Pi-hole's own documented v6 REST API, entirely over your local network.
+> **Unofficial.** This is not made or supported by the Pihole project. It uses
+> Pihole's own documented v6 REST API, entirely over your local network.
 
 ---
 
 ## What you get
 
-For each Pi-hole, one Hubitat device exposing:
+For each Pihole, one Hubitat device exposing:
 
 * **Blocking** — on/off as a standard switch, with an optional timer that
-  Pi-hole itself reverses
+  Pihole itself reverses
 * **Queries** — total, blocked, percent blocked, forwarded, cached, per second
 * **Clients** — active now and seen in total
 * **Blocklist** — size, when it was last rebuilt, top domains and clients
 * **Host health** — CPU temperature, load, memory, uptime
 * **Versions** — Core, FTL and Web, plus whether an update is waiting
-* **Diagnostics** — online/offline, Pi-hole's own warning count, last error
+* **Diagnostics** — online/offline, Pihole's own warning count, last error
 
 Everything is a standard Hubitat attribute, so it all works in Rule Machine,
 dashboards, and any other app.
 
-The app adds notifications when a Pi-hole stops responding, when blocking is
+The app adds notifications when a Pihole stops responding, when blocking is
 turned off, when an update appears, and when your block rate falls below a
 threshold you set — often the first sign a device is bypassing your DNS.
 
 ## Requirements
 
 * Hubitat hub on firmware **2.3.0** or later
-* **Pi-hole v6.0 or later** — v6 replaced the old `/admin/api.php` interface
+* **Pihole v6.0 or later** — v6 replaced the old `/admin/api.php` interface
   with a completely different API, and only the new one is supported. Point this
   at a v5 host and the connection test will say so rather than failing obscurely
-* Your Pi-hole web password, or an application password
+* Your Pihole web password, or an application password
 * Nothing leaves your network — there is no cloud service and no account
 
 ---
@@ -46,22 +46,33 @@ threshold you set — often the first sign a device is bypassing your DNS.
 ### Option A — Hubitat Package Manager (recommended)
 
 HPM installs all the files in the right order and handles updates afterwards.
+Don't have it yet? [Install HPM first][hpm-install].
 
-1. Open **Hubitat Package Manager**.
-2. Choose **Package Manager Settings → Add a Custom Repository**.
-3. Paste this as the repository URL, give it any name you like, and save:
+1. Open **Hubitat Package Manager** and choose **Install**.
+2. Choose **From a URL** and paste this package manifest:
    ```
-   https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/repository.json
+   https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/packageManifest.json
    ```
-4. Back at the main menu, choose **Install → Browse by Tags**.
-5. Pick the **LAN** or **Monitoring** tag, then **Pi-hole Integration**.
-6. If you run more than one Pi-hole, tick **Pi-hole Group** when HPM offers the
-   optional components. You can add it later via **Modify** if you change your
-   mind.
+   As HPM's own docs note, this is the URL of a *package JSON* — not of an app
+   or driver file.
+3. If you run more than one Pihole, tick **Pihole Group** when HPM offers the
+   optional components. You can add or drop it later with **Modify**.
+4. Click **Next** to confirm, and HPM installs the app and drivers.
 
-> Use **Browse by Tags**, not **Search by Keywords** — HPM's keyword search only
-> covers the standard repositories, so it will not find a package you added as a
-> custom repository.
+Updates are handled from then on however you installed it.
+
+*Prefer to browse?* Add this under **Package Manager Settings → Add a Custom
+Repository**, then use **Install → Browse by Tags** and pick **LAN** or
+**Monitoring**:
+
+```
+https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/repository.json
+```
+
+**Search by Keywords** won't find it either way — that searches only the
+standard repositories, not custom ones.
+
+[hpm-install]: https://hubitatpackagemanager.hubitatcommunity.com/installing.html
 
 ### Option B — manual import
 
@@ -72,7 +83,7 @@ devices.
    ```
    https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/PiholeServer.groovy
    ```
-2. Only if you run more than one Pi-hole, repeat for the group driver:
+2. Only if you run more than one Pihole, repeat for the group driver:
    ```
    https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/PiholeGroup.groovy
    ```
@@ -88,23 +99,23 @@ If you later want HPM to manage updates for a manual install, use its
 
 Once the app and drivers are installed, by either method:
 
-1. **Apps → Add user app → Pi-hole Integration**.
-2. Press **Add a Pi-hole**, enter a name, the hostname or IP address, and the
+1. **Apps → Add user app → Pihole Integration**.
+2. Press **Add a Pihole**, enter a name, the hostname or IP address, and the
    password, then press **Test Connection**. You should see "Connected" —
    nothing is created until it does.
-3. Press **Add Pi-hole**. Repeat for each Pi-hole you run.
+3. Press **Add Pihole**. Repeat for each Pihole you run.
 4. Back on the main page, set your poll intervals, turn on the group device if
    you want one, choose your notifications, and press **Done**.
 
 ### Getting the password right
 
-Use the same password as the Pi-hole web interface, with three exceptions:
+Use the same password as the Pihole web interface, with three exceptions:
 
 * **If two-factor authentication is on, your normal password will not work** —
   nothing can type a rotating code on a schedule. Create an **application
-  password** under *Settings → Web interface / API* on the Pi-hole and use that.
+  password** under *Settings → Web interface / API* on the Pihole and use that.
   It skips 2FA and can be revoked on its own without changing your login.
-* **A Pi-hole with no API password** is supported; leave the box empty.
+* **A Pihole with no API password** is supported; leave the box empty.
 * **Docker installs** usually publish the web interface on a port other than 80.
   For HTTPS with the default self-signed certificate, tick **Use HTTPS** and
   then **Accept the self-signed certificate**.
@@ -115,7 +126,7 @@ are not shown that way.
 
 ### Using the driver without the app
 
-The **Pi-hole Server** driver is self-contained. With a single Pi-hole and no
+The **Pihole Server** driver is self-contained. With a single Pihole and no
 interest in the app, add a **Virtual Device** using that driver, fill in the
 hostname and password in its preferences, and save. You give up the
 notifications and the group device; everything else is identical.
@@ -128,11 +139,11 @@ notifications and the group device; everything else is identical.
 on. Each device has a **Default off duration** preference:
 
 * Left at **0**, blocking stays off until something turns it back on. This is
-  what the Pi-hole web interface calls disabling indefinitely.
+  what the Pihole web interface calls disabling indefinitely.
 * Set to **5**, every `off()` becomes a five-minute reprieve.
 
 The second is usually the better choice, because the countdown runs *on the
-Pi-hole*. It still fires if your hub reboots, if a rule's second half never
+Pihole*. It still fires if your hub reboots, if a rule's second half never
 runs, or if this integration falls over entirely. A rule that turns blocking off
 and promises to turn it back on later has none of those guarantees.
 
@@ -143,13 +154,13 @@ when a site breaks, and it heals itself.
 While blocking is off, `blockingTimer` counts down and `blockingResumesAt` shows
 the clock time it comes back.
 
-## Running more than one Pi-hole
+## Running more than one Pihole
 
-Most people who run a second Pi-hole do it for redundancy, with every client
+Most people who run a second Pihole do it for redundancy, with every client
 configured to use both. That makes single-device control almost useless:
 disabling blocking on one just sends queries to the other.
 
-The optional **Pi-hole Group** device solves that. It summarises the whole set
+The optional **Pihole Group** device solves that. It summarises the whole set
 and switches all of them together.
 
 | Attribute | Notes |
@@ -162,15 +173,15 @@ and switches all of them together.
 | `domainsBlocked`, `clientsActive` | largest value, **not** a total |
 | `updateAvailable`, `lastUpdate` | |
 
-Query counts are added together because each Pi-hole answers a different share
+Query counts are added together because each Pihole answers a different share
 of your traffic. Blocklist size and client counts take the largest value
 instead — a redundant pair runs the same lists for the same clients, so adding
 them would count everything twice.
 
-The switch follows the app's *reports on only when every Pi-hole is blocking*
+The switch follows the app's *reports on only when every Pihole is blocking*
 option. Left on (the default), the group reads `on` only when nothing is getting
 through, which is the useful reading for a redundant pair; turned off, one
-Pi-hole still blocking is enough. If nothing is reachable at all the group
+Pihole still blocking is enough. If nothing is reachable at all the group
 reports `unknown` rather than `disabled`, so a rule watching for "blocking got
 turned off" doesn't fire on a network outage.
 
@@ -187,7 +198,7 @@ TemperatureMeasurement.
 |---|---|---|
 | `switch` | on/off | **`on` means blocking is enabled** |
 | `blocking` | | `enabled`, `disabled`, `failed`, `unknown` |
-| `blockingTimer` | s | until Pi-hole re-enables itself; `0` if none |
+| `blockingTimer` | s | until Pihole re-enables itself; `0` if none |
 | `blockingResumesAt` | | clock time blocking comes back |
 | `queriesTotal`, `queriesBlocked` | | today's counts |
 | `percentBlocked` | % | |
@@ -195,10 +206,10 @@ TemperatureMeasurement.
 | `queryFrequency` | /s | queries per second |
 | `uniqueDomains` | | |
 | `clientsActive`, `clientsTotal` | | |
-| `domainsBlocked` | | blocklist size — Pi-hole calls this gravity |
+| `domainsBlocked` | | blocklist size — Pihole calls this gravity |
 | `gravityLastUpdate` | | when the blocklists were last rebuilt |
 | `topDomain`, `topBlockedDomain`, `topClient`, `recentBlocked` | | |
-| `temperature` | °C/°F | the Pi-hole host's CPU temperature, converted to your hub's scale |
+| `temperature` | °C/°F | the Pihole host's CPU temperature, converted to your hub's scale |
 | `cpuLoad` | % | one-minute load average, relative to core count |
 | `memoryUsage` | % | RAM in use |
 | `uptime` | s | |
@@ -206,7 +217,7 @@ TemperatureMeasurement.
 | `hostName`, `hostModel`, `ipAddress` | | |
 | `versionCore`, `versionFtl`, `versionWeb` | | |
 | `updateAvailable` | yes/no | any component behind its published release |
-| `diagnosticMessages` | | Pi-hole's own warning count |
+| `diagnosticMessages` | | Pihole's own warning count |
 | `privacyLevel`, `dhcpActive` | | |
 | `connectionStatus` | | `online` / `offline` |
 | `lastError` | | most recent failure — check here first |
@@ -228,25 +239,25 @@ Check the device's `lastError` attribute first. Most failures land there in
 plain language, and the same text appears on the app's setup page.
 
 **"Password rejected" or "refused the password"** — the password is wrong. If
-two-factor authentication is enabled on the Pi-hole, you need an application
+two-factor authentication is enabled on the Pihole, you need an application
 password instead.
 
-**"No `/api/auth` endpoint. This integration needs Pi-hole v6 or later"** —
-almost certainly a Pi-hole v5 host. There is no workaround short of upgrading.
+**"No `/api/auth` endpoint. This integration needs Pihole v6 or later"** —
+almost certainly a Pihole v5 host. There is no workaround short of upgrading.
 
 **"Cannot resolve..."** — the hostname isn't resolvable from your hub. Try the
 IP address instead.
 
-**"Cannot reach..."** — wrong port, a firewall, or the Pi-hole is down. Docker
+**"Cannot reach..."** — wrong port, a firewall, or the Pihole is down. Docker
 installs rarely use port 80.
 
 **SSL or certificate errors** — tick **Accept the self-signed certificate** in
 the device preferences.
 
-**"rate limiting login attempts"** — Pi-hole throttles repeated logins. Wait a
+**"rate limiting login attempts"** — Pihole throttles repeated logins. Wait a
 minute and try again.
 
-**A Pi-hole shows "not yet created"** — its device was deleted by hand. Open it
+**A Pihole shows "not yet created"** — its device was deleted by hand. Open it
 in the app and save it again, with the password, to rebuild it.
 
 **No devices can be created at all** — install the drivers before the app. The
@@ -264,11 +275,11 @@ off after 30 minutes.
 * **Blocking is the only thing you can change from here.** Gravity updates, DNS
   restarts and log flushes all have API endpoints and none are included — they
   are slow, disruptive, and produce output no attribute can hold. A dashboard
-  tile that can break a working Pi-hole with a mis-tap is a bad trade. Run them
-  from Pi-hole's own interface, where you can see what happened.
-* **Pi-hole v6 or later only.** See [Requirements](#requirements).
+  tile that can break a working Pihole with a mis-tap is a bad trade. Run them
+  from Pihole's own interface, where you can see what happened.
+* **Pihole v6 or later only.** See [Requirements](#requirements).
 * **Two-factor authentication requires an application password.**
-* **Polling only.** Pi-hole has no push channel, so a change made in its web
+* **Polling only.** Pihole has no push channel, so a change made in its web
   interface appears at the next poll. Changes made from Hubitat schedule a
   catch-up refresh a few seconds later.
 * **No query-level detail.** Individual query logs, per-client history and the
@@ -281,7 +292,7 @@ off after 30 minutes.
 
 Each device owns its own connection and polls itself, and the app provisions and
 coordinates rather than relaying requests. That split is the opposite of a cloud
-integration, and for a good reason: every Pi-hole is a separate machine with its
+integration, and for a good reason: every Pihole is a separate machine with its
 own credentials and its own login session, so there is nothing to share. A
 device therefore keeps working even if you remove the app.
 
@@ -291,23 +302,23 @@ A few details worth knowing if you're reading the code:
   requests covering what actually changes — queries, clients, blocking state,
   CPU temperature. The slow cycle (30 minutes) is three more for uptime,
   versions and diagnostics. Both are configurable.
-* **Sessions are reused, not re-created.** Pi-hole allows only a limited number
+* **Sessions are reused, not re-created.** Pihole allows only a limited number
   of concurrent API sessions and binds each to the calling IP. Each device holds
   exactly one, renews it shortly before expiry, and formally logs out when its
   settings change or it's removed. A session that lapses mid-request triggers
   one re-authentication and one retry, so it costs nothing rather than losing a
   poll.
 * **Nothing blocks the hub.** Every scheduled request is asynchronous, so a
-  Pi-hole that has been unplugged can't tie up a hub thread waiting to time out.
+  Pihole that has been unplugged can't tie up a hub thread waiting to time out.
 * **Offline is a considered verdict.** One failed request is a blip; two in a
   row mark the device offline and set `blocking` to `unknown` rather than
   guessing.
-* **Endpoint differences are survivable.** The poll prefers Pi-hole's aggregate
+* **Endpoint differences are survivable.** The poll prefers Pihole's aggregate
   `/api/padd` endpoint, which isn't present on every v6 build; a 404 there falls
   back permanently to the per-topic endpoints and keeps polling.
 * **Switching feels instant.** Turning blocking on or off updates the device
   immediately and schedules a confirming refresh, so a dashboard responds at
-  once but corrects itself if the Pi-hole disagreed.
+  once but corrects itself if the Pihole disagreed.
 
 ## Contributing
 
@@ -321,8 +332,8 @@ time, so a rename that misses one side fails silently until that path runs.
 
 ## Credits
 
-Built against the [Pi-hole v6 API documentation](https://docs.pi-hole.net/api/)
+Built against the [Pihole v6 API documentation](https://docs.pi-hole.net/api/)
 and the endpoint definitions in [pi-hole/FTL](https://github.com/pi-hole/FTL).
 
 Pi-hole® is a registered trademark of Pi-hole LLC. This project is not
-affiliated with, endorsed by, or sponsored by the Pi-hole project.
+affiliated with, endorsed by, or sponsored by the Pihole project.

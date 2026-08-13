@@ -1,27 +1,27 @@
 /**
- *  Pi-hole Integration
+ *  Pihole Integration
  *  ===================
- *  Hubitat integration app for one or more Pi-hole servers.
+ *  Hubitat integration app for one or more Pihole servers.
  *
  *  This app is the fleet manager. It:
- *    - keeps the list of Pi-holes and provisions one child device per server,
+ *    - keeps the list of Piholes and provisions one child device per server,
  *    - verifies host, port and password before a device is ever created,
  *    - pushes the shared polling schedule down to every child,
- *    - optionally maintains a "Pi-hole Group" device that aggregates the fleet
+ *    - optionally maintains a "Pihole Group" device that aggregates the fleet
  *      and can enable/disable blocking everywhere at once,
  *    - raises notifications for offline servers, low block rates and available
- *      Pi-hole updates.
+ *      Pihole updates.
  *
- *  Requires the companion drivers: "Pi-hole Server" and, if the group device is
- *  enabled, "Pi-hole Group".
+ *  Requires the companion drivers: "Pihole Server" and, if the group device is
+ *  enabled, "Pihole Group".
  *
  *  ---------------------------------------------------------------------------
  *  WHERE THE HTTP LIVES
  *  ---------------------------------------------------------------------------
- *  Unlike a cloud integration, each Pi-hole is an independent LAN endpoint with
+ *  Unlike a cloud integration, each Pihole is an independent LAN endpoint with
  *  its own credentials and its own API session. There is nothing to share
  *  between them, so each child device owns its own connection and polls itself.
- *  This app provisions and coordinates; it only talks to a Pi-hole directly when
+ *  This app provisions and coordinates; it only talks to a Pihole directly when
  *  testing a connection from the setup page.
  *
  *  The one consequence worth knowing: passwords are stored in the child device's
@@ -32,16 +32,16 @@
  *  ---------------------------------------------------------------------------
  *  API NOTES
  *  ---------------------------------------------------------------------------
- *  Targets the Pi-hole v6 REST API (Pi-hole 6.0, February 2025, and later).
+ *  Targets the Pihole v6 REST API (Pihole 6.0, February 2025, and later).
  *  The v5 `/admin/api.php` interface is not supported; a v5 host is detected
  *  during the connection test and reported as such rather than failing with a
  *  confusing 404.
  *
  *  Auth: POST /api/auth with {"password": "..."} returns a session id (SID).
- *        Pi-hole allows only a limited number of concurrent sessions, so the
+ *        Pihole allows only a limited number of concurrent sessions, so the
  *        connection test logs out again as soon as it is done.
  *
- *  If two-factor authentication is enabled on the Pi-hole, a plain password
+ *  If two-factor authentication is enabled on the Pihole, a plain password
  *  cannot be used unattended. Create an *application password* in
  *  Settings -> Web interface / API and use that instead.
  *
@@ -51,10 +51,10 @@
 import groovy.transform.Field
 
 definition(
-    name: "Pi-hole Integration",
+    name: "Pihole Integration",
     namespace: "vision9074",
     author: "vision9074",
-    description: "Monitor and control one or more Pi-hole servers from Hubitat",
+    description: "Monitor and control one or more Pihole servers from Hubitat",
     category: "Convenience",
     iconUrl: "",
     iconX2Url: "",
@@ -74,8 +74,8 @@ preferences {
 // Constants
 // =============================================================================
 @Field static final String DRIVER_NAMESPACE = "vision9074"
-@Field static final String SERVER_DRIVER    = "Pi-hole Server"
-@Field static final String GROUP_DRIVER     = "Pi-hole Group"
+@Field static final String SERVER_DRIVER    = "Pihole Server"
+@Field static final String GROUP_DRIVER     = "Pihole Group"
 
 /** Connection tests are synchronous, so they get a short leash. */
 @Field static final int TEST_TIMEOUT_SECONDS = 10
@@ -108,12 +108,12 @@ def mainPage() {
     // next visit to serverPage re-prime itself from scratch.
     state.remove("formPrimedFor")
 
-    dynamicPage(name: "mainPage", title: "<h2>Pi-hole Integration</h2>", install: true, uninstall: true) {
+    dynamicPage(name: "mainPage", title: "<h2>Pihole Integration</h2>", install: true, uninstall: true) {
 
-        section("<b>Pi-holes</b>") {
+        section("<b>Piholes</b>") {
             List servers = serverList()
             if (!servers) {
-                paragraph "No Pi-holes have been added yet."
+                paragraph "No Piholes have been added yet."
             }
             servers.each { Map srv ->
                 href name: "edit_${srv.id}", page: "serverPage", params: [id: srv.id],
@@ -121,7 +121,7 @@ def mainPage() {
                      description: serverUrl(srv)
             }
             href name: "addServer", page: "serverPage", params: [id: ""],
-                 title: "&#10133; Add a Pi-hole", description: ""
+                 title: "&#10133; Add a Pihole", description: ""
         }
 
         if (serverList()) {
@@ -132,20 +132,20 @@ def mainPage() {
                 input name: "detailInterval", type: "enum", width: 6,
                       title: "Refresh uptime, versions and diagnostics",
                       options: DETAIL_OPTIONS, defaultValue: "30", required: true, submitOnChange: true
-                paragraph "Each Pi-hole polls itself on this schedule. The fast cycle is two " +
+                paragraph "Each Pihole polls itself on this schedule. The fast cycle is two " +
                           "requests, the slow cycle is three, and both are local to your network."
             }
 
             section("<b>Group device</b>") {
                 input name: "createGroup", type: "bool", submitOnChange: true,
-                      title: "Create a <b>Pi-hole Group</b> device", defaultValue: false
-                paragraph "One device that summarises every Pi-hole and turns blocking on or off " +
+                      title: "Create a <b>Pihole Group</b> device", defaultValue: false
+                paragraph "One device that summarises every Pihole and turns blocking on or off " +
                           "across all of them at once &mdash; the usual reason to run a second " +
-                          "Pi-hole is redundancy, and disabling only one of a redundant pair " +
+                          "Pihole is redundancy, and disabling only one of a redundant pair " +
                           "does nothing."
                 if (settings.createGroup) {
                     input name: "groupRequiresAll", type: "bool", width: 6,
-                          title: "Group reports <i>on</i> only when <b>every</b> Pi-hole is blocking",
+                          title: "Group reports <i>on</i> only when <b>every</b> Pihole is blocking",
                           defaultValue: true
                 }
             }
@@ -155,11 +155,11 @@ def mainPage() {
                       title: "Send notifications to", required: false, submitOnChange: true
                 if (settings.notifyDevices) {
                     input name: "notifyOffline", type: "bool", width: 6,
-                          title: "A Pi-hole stops responding", defaultValue: true
+                          title: "A Pihole stops responding", defaultValue: true
                     input name: "notifyBlockingOff", type: "bool", width: 6,
                           title: "Blocking is turned off", defaultValue: false
                     input name: "notifyUpdates", type: "bool", width: 6,
-                          title: "A Pi-hole update is available", defaultValue: false
+                          title: "A Pihole update is available", defaultValue: false
                     input name: "percentThreshold", type: "decimal", width: 6,
                           title: "Block rate falls below this % (blank to disable)", required: false
                 }
@@ -193,7 +193,7 @@ def serverPage(params) {
     }
     Map existing = findServer(id)
 
-    dynamicPage(name: "serverPage", title: "<h2>${existing ? existing.label : 'Add a Pi-hole'}</h2>") {
+    dynamicPage(name: "serverPage", title: "<h2>${existing ? existing.label : 'Add a Pihole'}</h2>") {
         section {
             input name: "srvLabel", type: "text", title: "Name", required: true, submitOnChange: true
             input name: "srvHost", type: "text", title: "Hostname or IP address",
@@ -206,7 +206,7 @@ def serverPage(params) {
                 input name: "srvIgnoreSsl", type: "bool", submitOnChange: true,
                       title: "Accept the self-signed certificate", defaultValue: true
             }
-            // Not marked required: a Pi-hole with no API password set is
+            // Not marked required: a Pihole with no API password set is
             // unusual but legal, and the connection test is a better judge of
             // whether the password is acceptable than a blank check is.
             input name: "srvPassword", type: "password", submitOnChange: true, required: false,
@@ -217,22 +217,22 @@ def serverPage(params) {
         section {
             input name: "btnTest", type: "button", title: "Test Connection", width: 4
             input name: "btnSave", type: "button",
-                  title: existing ? "Save Changes" : "Add Pi-hole", width: 4
+                  title: existing ? "Save Changes" : "Add Pihole", width: 4
             if (existing) {
-                input name: "btnDelete", type: "button", title: "Remove This Pi-hole", width: 4
+                input name: "btnDelete", type: "button", title: "Remove This Pihole", width: 4
             }
             if (state.serverMessage) paragraph state.serverMessage
         }
 
         section {
-            paragraph "<small>If this Pi-hole has two-factor authentication enabled, a plain " +
+            paragraph "<small>If this Pihole has two-factor authentication enabled, a plain " +
                       "password will not work unattended. Create an <b>application password</b> " +
                       "under Settings &rarr; Web interface / API and paste that instead.<br>" +
                       "Docker installs usually publish the web interface on a port other than 80.</small>"
         }
 
         section {
-            href name: "backToMain", page: "mainPage", title: "&larr; Back to the Pi-hole list", description: ""
+            href name: "backToMain", page: "mainPage", title: "&larr; Back to the Pihole list", description: ""
         }
     }
 }
@@ -330,7 +330,7 @@ private void testConnectionFromForm() {
 private void saveServerFromForm() {
     Map form = readServerForm()
     if (!form.label) {
-        state.serverMessage = "&#10060; Give this Pi-hole a name."
+        state.serverMessage = "&#10060; Give this Pihole a name."
         return
     }
     if (!form.host) {
@@ -340,7 +340,7 @@ private void saveServerFromForm() {
     String id = (state.editingId ?: "").toString()
     Map existing = findServer(id)
 
-    // Verify on the way in for a new Pi-hole, so a bad password is caught
+    // Verify on the way in for a new Pihole, so a bad password is caught
     // before a device exists. On an edit with the password box left blank there
     // is nothing to verify with, and refusing to save would block harmless
     // changes like renaming or moving to a new port.
@@ -375,7 +375,7 @@ private void saveServerFromForm() {
 
     state.serverMessage = cd ? "&#9989; ${form.label} saved.".toString()
                              : "&#10060; Could not create the device. Check the logs."
-    if (cd) logInfo "Saved Pi-hole '${form.label}' at ${serverUrl(existing)}"
+    if (cd) logInfo "Saved Pihole '${form.label}' at ${serverUrl(existing)}"
     refreshGroupDevice()
 }
 
@@ -388,7 +388,7 @@ private void deleteServerFromForm() {
     state.servers = serverList().findAll { it.id != id }
     state.editingId = ""
     state.serverMessage = "&#9989; Removed ${srv.label}.".toString()
-    logInfo "Removed Pi-hole '${srv.label}'"
+    logInfo "Removed Pihole '${srv.label}'"
     refreshGroupDevice()
 }
 
@@ -427,7 +427,7 @@ private def provisionChild(Map srv, String password) {
 // Connection test
 // =============================================================================
 /**
- * Synchronous login against a candidate Pi-hole. Synchronous by design: the
+ * Synchronous login against a candidate Pihole. Synchronous by design: the
  * setup page cannot render a verdict it does not have yet.
  *
  * Returns [ok: boolean, message: String].
@@ -453,7 +453,7 @@ private Map probe(Map form) {
                 sid = session.sid
                 outcome.ok = true
                 outcome.message = "&#9989; Connected to ${form.host}." +
-                                  (sid ? "" : " This Pi-hole has no API password set.")
+                                  (sid ? "" : " This Pihole has no API password set.")
             } else {
                 outcome.message = "&#10060; ${form.host} refused the password."
             }
@@ -466,7 +466,7 @@ private Map probe(Map form) {
         outcome.message = "&#10060; Cannot reach ${base}: ${e.message}"
     }
 
-    // Pi-hole caps concurrent API sessions, so give this one straight back.
+    // Pihole caps concurrent API sessions, so give this one straight back.
     if (sid) releaseSession(base, sid, params.ignoreSSLIssues == true)
     logDebug "Connection test for ${base}: ${outcome.ok ? 'ok' : outcome.message}"
     return outcome
@@ -479,10 +479,10 @@ private String describeProbeError(groovyx.net.http.HttpResponseException e, Stri
                    "use an application password."
         case 404:
             // /api/auth is the v6 API root. A 404 from a live web server almost
-            // always means this is a Pi-hole v5 host.
+            // always means this is a Pihole v5 host.
             return "&#10060; ${host} answered, but has no <code>/api/auth</code> endpoint. " +
-                   "That usually means Pi-hole v5, which this integration does not support &mdash; " +
-                   "upgrade to Pi-hole v6 or later."
+                   "That usually means Pihole v5, which this integration does not support &mdash; " +
+                   "upgrade to Pihole v6 or later."
         case 429:
             return "&#10060; ${host} is rate limiting login attempts. Wait a moment and try again."
         default:
@@ -521,7 +521,7 @@ void updated() {
 }
 
 void uninstalled() {
-    logInfo "Removing all Pi-hole child devices"
+    logInfo "Removing all Pihole child devices"
     getChildDevices().each { deleteChildDevice(it.deviceNetworkId) }
 }
 
@@ -581,15 +581,15 @@ private void syncGroupDevice() {
     if (settings.createGroup && !existing) {
         try {
             addChildDevice(DRIVER_NAMESPACE, GROUP_DRIVER, groupDni(),
-                           [name: GROUP_DRIVER, label: "Pi-hole Group", isComponent: false])
-            logInfo "Created the Pi-hole Group device"
+                           [name: GROUP_DRIVER, label: "Pihole Group", isComponent: false])
+            logInfo "Created the Pihole Group device"
         } catch (Exception e) {
             logError "Could not create the group device: ${e.message}. Confirm the " +
                      "'${GROUP_DRIVER}' driver is installed in namespace '${DRIVER_NAMESPACE}'."
         }
     } else if (!settings.createGroup && existing) {
         deleteChildDevice(groupDni())
-        logInfo "Removed the Pi-hole Group device"
+        logInfo "Removed the Pihole Group device"
     }
 }
 
@@ -672,7 +672,7 @@ void refreshAll() {
 }
 
 void groupEnableBlocking() {
-    logInfo "Enabling blocking on every Pi-hole"
+    logInfo "Enabling blocking on every Pihole"
     serverDevices().each { cd ->
         try {
             cd.enableBlocking()
@@ -684,7 +684,7 @@ void groupEnableBlocking() {
 }
 
 void groupDisableBlocking(Integer minutes) {
-    logInfo "Disabling blocking on every Pi-hole${minutes ? " for ${minutes} minute(s)" : ''}"
+    logInfo "Disabling blocking on every Pihole${minutes ? " for ${minutes} minute(s)" : ''}"
     serverDevices().each { cd ->
         try {
             cd.disableBlocking(minutes)
@@ -703,9 +703,9 @@ void connectionHandler(evt) {
     // Only the transition into offline is worth waking someone for; the
     // recovery is reported so they know it cleared.
     if (evt.value == "offline") {
-        notify("Pi-hole '${evt.device.displayName}' is not responding.")
+        notify("Pihole '${evt.device.displayName}' is not responding.")
     } else if (evt.value == "online") {
-        notify("Pi-hole '${evt.device.displayName}' is back online.")
+        notify("Pihole '${evt.device.displayName}' is back online.")
     }
 }
 
@@ -714,7 +714,7 @@ void blockingHandler(evt) {
     if (evt.value == "disabled") {
         def cd = evt.device
         String timer = cd?.currentValue("blockingResumesAt")
-        notify("Pi-hole '${evt.device.displayName}' has blocking turned off" +
+        notify("Pihole '${evt.device.displayName}' has blocking turned off" +
                (timer ? " until ${timer}." : " with no timer set."))
     }
 }
@@ -722,7 +722,7 @@ void blockingHandler(evt) {
 void updateHandler(evt) {
     if (!settings.notifyUpdates) return
     if (evt.value == "yes") {
-        notify("Pi-hole '${evt.device.displayName}' has an update available.")
+        notify("Pihole '${evt.device.displayName}' has an update available.")
     }
 }
 
@@ -740,7 +740,7 @@ void percentHandler(evt) {
     String key = "belowThreshold_${evt.device.id}".toString()
     if (state[key]) return
     state[key] = true
-    notify("Pi-hole '${evt.device.displayName}' block rate is ${value}%, below the ${threshold}% threshold.")
+    notify("Pihole '${evt.device.displayName}' block rate is ${value}%, below the ${threshold}% threshold.")
 }
 
 private void notify(String msg) {
@@ -757,7 +757,7 @@ private void notify(String msg) {
 // =============================================================================
 // Logging
 // =============================================================================
-private void logDebug(String msg) { if (settings.logEnable != false) log.debug "Pi-hole: ${msg}" }
-private void logInfo(String msg)  { if (settings.txtEnable != false) log.info  "Pi-hole: ${msg}" }
-private void logWarn(String msg)  { log.warn  "Pi-hole: ${msg}" }
-private void logError(String msg) { log.error "Pi-hole: ${msg}" }
+private void logDebug(String msg) { if (settings.logEnable != false) log.debug "Pihole: ${msg}" }
+private void logInfo(String msg)  { if (settings.txtEnable != false) log.info  "Pihole: ${msg}" }
+private void logWarn(String msg)  { log.warn  "Pihole: ${msg}" }
+private void logError(String msg) { log.error "Pihole: ${msg}" }
