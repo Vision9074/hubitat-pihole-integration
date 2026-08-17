@@ -48,29 +48,23 @@ threshold you set — often the first sign a device is bypassing your DNS.
 HPM installs all the files in the right order and handles updates afterwards.
 Don't have it yet? [Install HPM first][hpm-install].
 
-1. Open **Hubitat Package Manager** and choose **Install**.
-2. Choose **From a URL** and paste this package manifest:
-   ```
-   https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/packageManifest.json
-   ```
-   As HPM's own docs note, this is the URL of a *package JSON* — not of an app
-   or driver file.
+1. Open **Hubitat Package Manager** and choose **Install → Browse by Tags**.
+2. Pick the **LAN** or **Monitoring** tag, then **Pihole Integration**.
 3. If you run more than one Pihole, tick **Pihole Group** when HPM offers the
    optional components. You can add or drop it later with **Modify**.
 4. Click **Next** to confirm, and HPM installs the app and drivers.
 
-Updates are handled from then on however you installed it.
+**Install → Search by Keywords** for `pihole` works too, once HPM's search index
+has picked this package up — it rebuilds on its own schedule, separately from
+the package listing, so browsing by tag is the reliable route in the meantime.
 
-*Prefer to browse?* Add this under **Package Manager Settings → Add a Custom
-Repository**, then use **Install → Browse by Tags** and pick **LAN** or
-**Monitoring**:
+To go straight to it, **Install → From a URL** with the package manifest also
+works at any time. Note this is the URL of a *package JSON*, not of an app or
+driver file:
 
 ```
-https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/repository.json
+https://raw.githubusercontent.com/vision9074/hubitat-pihole-integration/main/packageManifest.json
 ```
-
-**Search by Keywords** won't find it either way — that searches only the
-standard repositories, not custom ones.
 
 [hpm-install]: https://hubitatpackagemanager.hubitatcommunity.com/installing.html
 
