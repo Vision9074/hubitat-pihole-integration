@@ -314,16 +314,6 @@ A few details worth knowing if you're reading the code:
   immediately and schedules a confirming refresh, so a dashboard responds at
   once but corrects itself if the Pihole disagreed.
 
-## Contributing
-
-Issues and pull requests are welcome. If you fork this and change the
-`vision9074` namespace, change it in *all three* files — `definition(namespace:)`
-in each, plus `DRIVER_NAMESPACE` in the app — or the app won't be able to create
-devices.
-
-The app and drivers call each other by name, and Groovy resolves those at run
-time, so a rename that misses one side fails silently until that path runs.
-
 ## Credits
 
 Built against the [Pihole v6 API documentation](https://docs.pi-hole.net/api/)
