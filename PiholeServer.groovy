@@ -204,7 +204,9 @@ void initialize() {
     unschedule()
     if (logEnable) runIn(1800, "disableDebugLogging")
     if (!settings.piHost) {
-        logWarn "No hostname set; polling is not scheduled."
+        // Surface this: without it the device just sits at the offline state
+        // installed() seeds, with nothing anywhere to say why.
+        noteError("No hostname set; polling is not scheduled.")
         return
     }
     applySchedule()
@@ -245,7 +247,14 @@ void setConnection(Map cfg) {
     if (cfg.detailInterval)           device.updateSetting("detailInterval", [value: cfg.detailInterval.toString(), type: "enum"])
 
     logDebug "setConnection applied${connectionChanged ? ' (connection changed)' : ''}"
-    initialize()
+    // device.updateSetting() writes straight to the database, but `settings`
+    // stays the snapshot this execution was loaded with, so everything below
+    // would still read the OLD values -- and on a device the app has only just
+    // created, that means no host at all. initialize() would then take its
+    // "no hostname" exit, schedule nothing, and leave the device sitting on the
+    // offline state installed() seeds. Re-enter through the scheduler so
+    // initialize() runs in a fresh execution that can see what was written.
+    runIn(1, "initialize")
 }
 
 private void applySchedule() {
