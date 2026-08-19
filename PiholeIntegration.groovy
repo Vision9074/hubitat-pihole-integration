@@ -315,13 +315,17 @@ private void testConnectionFromForm() {
         state.serverMessage = "&#10060; Enter a hostname or IP address first."
         return
     }
-    if (!form.password && findServer(state.editingId as String)) {
-        state.serverMessage = "&#9888; Leave the password blank only when saving. To test, " +
-                              "re-enter it &mdash; the stored password lives on the device, " +
-                              "not in this app."
-        return
-    }
+    // A blank password is a legitimate credential, not a missing one: a Pihole
+    // with no password set answers /api/auth with a valid session and a null
+    // sid. Refusing to test up front made those hosts impossible to verify, so
+    // ask the Pihole instead and let its answer decide.
     Map result = probe(form)
+    if (!result.ok && !form.password && findServer(state.editingId as String)) {
+        // Editing a saved Pihole that does want a password: the box is blank
+        // because the app never keeps a copy, so say where the password went.
+        result.message = "${result.message} The box is blank because the stored password " +
+                         "lives on the device, not in this app &mdash; re-enter it to test."
+    }
     // toString() matters: probe builds GStrings, and only plain Strings should
     // be written into state.
     state.serverMessage = result.message?.toString()

@@ -36,7 +36,8 @@ threshold you set — often the first sign a device is bypassing your DNS.
 * **Pihole v6.0 or later** — v6 replaced the old `/admin/api.php` interface
   with a completely different API, and only the new one is supported. Point this
   at a v5 host and the connection test will say so rather than failing obscurely
-* Your Pihole web password, or an application password
+* Your Pihole web password or an application password — or nothing at all, if
+  the Pihole has no password set
 * Nothing leaves your network — there is no cloud service and no account
 
 ---
